@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Anatomy Atlas — 3D Human Anatomy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css?v=13" />
+</head>
+<body>
+  <!-- ============================ HEADER ============================ -->
+  <header class="topbar">
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu">☰</button>
+    <div class="brand">
+      <span class="brand-mark">⚕</span>
+      <span class="brand-name">Anatomy&nbsp;Atlas</span>
+      <span class="brand-sub" id="structure-total"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="glb-status" id="glb-status"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ========================== SIDEBAR ========================== -->
+    <aside class="sidebar">
+      <div class="search-wrap">
+        <input id="search" type="text" placeholder="Search structures…  (e.g. femur, heart)" autocomplete="off" />
+        <button id="search-clear" title="Clear" style="display:none">×</button>
+      </div>
+      <div class="tree-mode" id="tree-mode" role="tablist" aria-label="Browse by">
+        <button data-mode="system" class="on" role="tab" aria-selected="true">By system</button>
+        <button data-mode="region" role="tab" aria-selected="false">By region</button>
+      </div>
+      <div id="quicklists"></div>
+      <div class="tree" id="tree" role="tree" aria-label="Anatomy structures"></div>
+    </aside>
+
+    <!-- ========================== VIEWPORT ========================= -->
+    <main class="viewport" id="viewport">
+      <div class="loading hidden" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading…</div>
+      </div>
+      <div class="floating-label" id="floating-label" style="display:none"></div>
+
+      <div class="isolate-banner" id="isolate-banner" style="display:none">
+        <span>Isolated: <strong id="isolate-name"></strong></span>
+        <button class="btn tiny" id="isolate-exit">Exit</button>
+      </div>
+
+      <!-- One consolidated control bar: system layers · X-ray · view actions -->
+      <div class="toolbar-bar" id="toolbar-bar">
+        <div class="tb-group" id="layers"></div>
+        <div class="tb-sep"></div>
+        <div class="tb-group tb-xray">
+          <span class="tb-label">X-ray</span>
+          <input type="range" id="xray-slider" min="0" max="90" value="0" />
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-group tb-actions">
+          <label class="chk"><input type="checkbox" id="toggle-labels" checked /><span>Labels</span></label>
+          <button class="btn ghost" id="btn-reset">Reset</button>
+          <button class="btn ghost" id="btn-show-all">Show all</button>
+          <label class="btn ghost file-btn">Load GLB…<input type="file" id="glb-file" accept=".glb,.gltf" hidden /></label>
+        </div>
+      </div>
+    </main>
+
+    <!-- ======================== INFO PANEL ========================= -->
+    <aside class="infopanel" aria-label="Structure details">
+      <button class="panel-close" id="info-close" aria-label="Close details">×</button>
+      <div id="info-content" class="info-empty">
+        <p>Select a structure to see details.</p>
+      </div>
+    </aside>
+  </div>
+  <div id="live" class="sr-only" aria-live="polite"></div>
+
+  <!-- Three.js r128 + classic-global OrbitControls & GLTFLoader (run from file://) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- Premium viewport: IBL environment + post-processing (outline selection) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/OutlinePass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
+  <!-- Fuzzy search -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+  <!-- App -->
+  <script src="js/data.js?v=13"></script>
+  <script src="js/body-model.js?v=13"></script>
+  <script src="js/glb-loader.js?v=13"></script>
+  <script src="js/app.js?v=13"></script>
+</body>
+</html>
