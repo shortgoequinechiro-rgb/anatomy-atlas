@@ -898,6 +898,12 @@
     if (navToggle) navToggle.addEventListener("click", () => document.body.classList.toggle("nav-open"));
     const infoClose = document.getElementById("info-close");
     if (infoClose) infoClose.addEventListener("click", () => document.body.classList.remove("has-selection"));
+    const scrim = document.getElementById("scrim");
+    if (scrim)
+      scrim.addEventListener("click", () => {
+        document.body.classList.remove("nav-open");
+        document.body.classList.remove("has-selection");
+      });
   }
 
   function resetView() {
@@ -1135,6 +1141,7 @@
       State.ready = true; // real model is in; persistence is now meaningful
       State.selected = null;
       State.labelTarget = null;
+      document.body.classList.remove("has-selection"); // clear placeholder selection
       State.hidden.clear();
       State.isolateId = null;
       clearSearch();
