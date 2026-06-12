@@ -1020,7 +1020,7 @@
   // form the full body. Soft tissue is semi-transparent so layers read well.
   const MODEL_SET = [
     { file: "models/z-anatomy-skeleton.glb", id: "skeletal", name: "Skeletal system", color: 0xece4d2, opacity: 1, on: true },
-    { file: "models/z-anatomy-muscular.glb", id: "muscular", name: "Muscular system", color: 0xb14a3f, opacity: 0.6, on: false },
+    { file: "models/z-anatomy-muscular.glb", id: "muscular", name: "Muscular system", color: 0xb14a3f, opacity: 1, on: false },
     { file: "models/z-anatomy-cardiovascular.glb", id: "cardiovascular", name: "Cardiovascular system", color: 0xc0392b, opacity: 0.95, on: false },
     { file: "models/z-anatomy-nervous.glb", id: "nervous", name: "Nervous system & senses", color: 0xe6c84d, opacity: 0.9, on: false },
     { file: "models/z-anatomy-visceral.glb", id: "visceral", name: "Visceral organs", color: 0xc98a55, opacity: 0.92, on: false },
@@ -1077,6 +1077,16 @@
     State.model = merged;
     scene.add(merged.group);
     ACTIVE = merged.catalog;
+    // Auto-hide structures flagged hidden-by-default (investing fascia sheets)
+    // ONCE each, so the muscle bellies show; if the user later reveals one it
+    // won't be re-hidden on a subsequent system load.
+    State.autoHidden = State.autoHidden || new Set();
+    Object.values(ACTIVE.index).forEach((st) => {
+      if (st.defaultHidden && !State.autoHidden.has(st.id)) {
+        State.hidden.add(st.id);
+        State.autoHidden.add(st.id);
+      }
+    });
     buildTree();
     buildLayers();
     buildSearchIndex();
