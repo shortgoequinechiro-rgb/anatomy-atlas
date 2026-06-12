@@ -138,8 +138,13 @@ window.AnatomyGLB = (function () {
       c.setHSL(clamp(0.04 + j(key, 61, 0.02), 0.0, 0.08), 0.45, clamp(0.45 + j(key, 62, 0.08), 0.34, 0.56)); // organ brown-reds
       roughness = 0.48; env = 1.12;
     } else if (systemId === "skin") {
-      c.setHSL(0.045, 0.42, clamp(0.62 + j(key, 71, 0.03), 0.55, 0.68));
-      roughness = 0.72; env = 1.0;
+      if (/hair|eyelash/.test(tag)) {
+        c.setHSL(0.075, 0.5, clamp(0.17 + j(key, 73, 0.04), 0.1, 0.24)); roughness = 0.86; env = 0.7;
+      } else if (/oral region|labial commissure|angle of mouth|upper lip|lower lip|tubercle of upper lip/.test(tag)) {
+        c.setHSL(0.015, 0.46, 0.5); roughness = 0.45; env = 1.15;
+      } else {
+        c.setHSL(0.045, 0.42, clamp(0.62 + j(key, 71, 0.03), 0.55, 0.68)); roughness = 0.72; env = 1.0;
+      }
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
     }
