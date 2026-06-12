@@ -137,6 +137,9 @@ window.AnatomyGLB = (function () {
     } else if (systemId === "visceral") {
       c.setHSL(clamp(0.04 + j(key, 61, 0.02), 0.0, 0.08), 0.45, clamp(0.45 + j(key, 62, 0.08), 0.34, 0.56)); // organ brown-reds
       roughness = 0.48; env = 1.12;
+    } else if (systemId === "skin") {
+      c.setHSL(0.045, 0.42, clamp(0.62 + j(key, 71, 0.03), 0.55, 0.68));
+      roughness = 0.72; env = 1.0;
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
     }
@@ -251,7 +254,8 @@ window.AnatomyGLB = (function () {
               if ("roughness" in mat) mat.roughness = tint.roughness;
               if ("metalness" in mat) mat.metalness = tint.metalness;
               if ("envMapIntensity" in mat) mat.envMapIntensity = tint.env;
-              if (mat.emissive) mat.emissive.setHex(0x000000);
+              if (mat.emissive) mat.emissive.setHex(systemId === "skin" ? 0x431912 : 0x000000);
+              if (systemId === "skin") { mat.emissiveIntensity = 0.12; mat.side = THREE.DoubleSide; }
               if (baseOpacity < 1) {
                 mat.transparent = true;
                 mat.opacity = baseOpacity;
