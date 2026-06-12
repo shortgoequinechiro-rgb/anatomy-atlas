@@ -138,7 +138,9 @@ window.AnatomyGLB = (function () {
       c.setHSL(clamp(0.04 + j(key, 61, 0.02), 0.0, 0.08), 0.45, clamp(0.45 + j(key, 62, 0.08), 0.34, 0.56)); // organ brown-reds
       roughness = 0.48; env = 1.12;
     } else if (systemId === "skin") {
-      if (/hair|eyelash/.test(tag)) {
+      if (/eye/.test(tag)) {
+        c.setHSL(0.08, 0.06, 0.82); roughness = 0.22; env = 1.2;
+      } else if (/hair|eyelash/.test(tag)) {
         c.setHSL(0.07, 0.4, clamp(0.16 + j(key, 73, 0.03), 0.1, 0.22)); roughness = 0.9; env = 0.5;
       } else if (/lip|labial|oral region/.test(tag)) {
         c.setHSL(0.02, 0.3, 0.56); roughness = 0.55; env = 1.05;
