@@ -367,7 +367,9 @@
   }
 
   let camAnim = null;
+  let orbitAnim = null; // spherical arc tween for the anatomical view presets
   function animateCamera(toPos, toTarget) {
+    orbitAnim = null; // a fly-to cancels any in-flight orbit arc
     if (reduceMotion) {
       camera.position.copy(toPos);
       controls.target.copy(toTarget);
@@ -886,6 +888,11 @@
       if (State.selected) renderInfo(State.selected);
     });
 
+    // anatomical view cube (ANT / POS / LAT / MED / SUP / INF + recenter)
+    document.querySelectorAll("#view-cube [data-view]").forEach((b) => {
+      b.addEventListener("click", () => (b.dataset.view === "reset" ? resetView() : setView(b.dataset.view)));
+    });
+
     // GLB drop-in
     const fileInput = document.getElementById("glb-file");
     fileInput.addEventListener("change", (e) => {
@@ -908,6 +915,42 @@
 
   function resetView() {
     animateCamera(new THREE.Vector3(0, 0.15, 3.1), new THREE.Vector3(0, 0, 0));
+  }
+
+  // Snap to a standard anatomical view around the current pivot (the selected
+  // structure if focused, else the body centre), keeping the distance.
+  // Front = +Z (anterior), up = +Y, the model's right = +X. The camera ARCS
+  // around the pivot on a sphere — it never lerps through the centre (which
+  // would break OrbitControls), so the distance stays constant.
+  function setView(which) {
+    if (!State.model) return;
+    const dirs = {
+      ant: [0, 0, 1], pos: [0, 0, -1],
+      lat: [1, 0, 0], med: [-1, 0, 0],
+      sup: [0, 1, 0.04], inf: [0, -1, 0.04], // slight tilt off the vertical pole
+    };
+    const v = dirs[which];
+    if (!v) return;
+    const t = controls.target.clone();
+    const r = camera.position.distanceTo(t) || 3.1;
+    const cur = new THREE.Spherical().setFromVector3(camera.position.clone().sub(t));
+    const dst = new THREE.Spherical().setFromVector3(new THREE.Vector3(v[0], v[1], v[2]).normalize().multiplyScalar(r));
+    let dTheta = dst.theta - cur.theta; // take the short way around
+    while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    camAnim = null; // cancel any in-flight fly-to
+    orbitAnim = { tgt: t, r0: cur.radius, r1: r, p0: cur.phi, p1: dst.phi, t0: cur.theta, t1: cur.theta + dTheta, t: 0 };
+    if (reduceMotion) { applyOrbit(1); orbitAnim = null; }
+  }
+  function applyOrbit(e) {
+    const a = orbitAnim;
+    const sph = new THREE.Spherical(
+      a.r0 + (a.r1 - a.r0) * e,
+      Math.max(0.04, Math.min(Math.PI - 0.04, a.p0 + (a.p1 - a.p0) * e)),
+      a.t0 + (a.t1 - a.t0) * e
+    );
+    camera.position.copy(a.tgt).add(new THREE.Vector3().setFromSpherical(sph));
+    controls.target.copy(a.tgt);
   }
 
   function updateIsolateBanner() {
@@ -976,6 +1019,12 @@
       if (camAnim.t >= 1) camAnim = null;
       changed = true;
     }
+    if (orbitAnim) {
+      orbitAnim.t = Math.min(1, orbitAnim.t + 0.07);
+      applyOrbit(easeInOut(orbitAnim.t));
+      if (orbitAnim.t >= 1) orbitAnim = null;
+      changed = true;
+    }
     if (controls.update()) changed = true; // true while damping/moving
     if (dirty || changed) {
       dirty = false;
@@ -1026,6 +1075,11 @@
     { file: "models/z-anatomy-visceral.glb", id: "visceral", name: "Visceral organs", color: 0xc98a55, opacity: 0.92, on: false },
   ];
 
+  // Eyes: a tiny always-on overlay (sclera/cornea/iris/lens) so the figure has
+  // real eyeballs seated in the orbits in every view. Not a toggle pill — it
+  // loads on boot and stays on; its parts are still selectable/searchable.
+  const EYES_CFG = { file: "models/eyes.glb", id: "eyes", name: "Eyes", color: 0xffffff, opacity: 1, on: true };
+
   // Merge the loaded systems into one model. The fit (scale + center) is derived
   // ONCE from the skeleton and reused, so systems stay aligned and adding a
   // system later doesn't make the body jump/resize.
@@ -1043,21 +1097,27 @@
       Object.assign(index, loaded.catalog.index);
     });
 
-    if (!State.fit) {
-      // derive from the skeleton (or whatever loaded first)
-      const ref = (items.find((it) => it.cfg.id === "skeletal") || items[0]).loaded.group;
+    // The fit (scale + centre) MUST come from the skeleton so the whole body is
+    // sized correctly. A small overlay (e.g. eyes) can finish loading first, so
+    // only LOCK the fit once the skeleton is present; until then use a temporary
+    // fit for this frame and recompute when the skeleton arrives.
+    let fit = State.fit;
+    if (!fit) {
+      const skel = items.find((it) => it.cfg.id === "skeletal");
+      const ref = (skel || items[0]).loaded.group;
       ref.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(ref);
       const size = new THREE.Vector3();
       const center = new THREE.Vector3();
       box.getSize(size);
       box.getCenter(center);
-      State.fit = { scale: size.y > 0 ? 1.8 / size.y : 1, center: center };
+      fit = { scale: size.y > 0 ? 1.8 / size.y : 1, center: center };
+      if (skel) State.fit = fit; // lock only to the skeleton
     }
-    inner.position.sub(State.fit.center);
+    inner.position.sub(fit.center);
     const group = new THREE.Group();
     group.add(inner);
-    group.scale.setScalar(State.fit.scale);
+    group.scale.setScalar(fit.scale);
     group.updateMatrixWorld(true);
     return {
       group,
@@ -1146,8 +1206,9 @@
     }
     const saved = loadPersisted();
     showLoading(true, "Loading skeleton…");
-    State.systemEnabled = new Set(["skeletal"]);
+    State.systemEnabled = new Set(["skeletal", "eyes"]);
     ensureSystem(MODEL_SET[0]).then(() => {
+      ensureSystem(EYES_CFG).then(applyVisibility); // eyeballs AFTER the skeleton fixes the fit/scale
       State.ready = true; // real model is in; persistence is now meaningful
       State.selected = null;
       State.labelTarget = null;

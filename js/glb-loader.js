@@ -50,14 +50,19 @@ window.AnatomyGLB = (function () {
   // organs, so every system groups consistently and few items fall into "Other".
   // Ordered — first match wins.
   const REGION_RULES = [
-    ["Head & Neck", /(crani|skull|frontal bone|parietal|temporal bone|occipital|sphenoid|ethmoid|maxilla|mandib|nasal|zygomat|palatine|vomer|lacrimal|hyoid|concha|tooth|teeth|incisor|canine|molar|premolar|orbit|petrous|mastoid|sella|cribriform|ossicle|incus|malleus|stapes|cochle|tympan|auditory|eyelid|eyeball|ocul|optic|retina|cornea|sclera|conjunctiv|lens of|tongue|lingu|laryn|pharyn|epiglott|cricoid|arytenoid|thyroid cartilage|trachea|parotid|submandibular|sublingual|salivary|masseter|temporalis|pterygoid|buccinator|orbicularis|zygomaticus|risorius|mentalis|platysma|sternocleidomastoid|scalene|digastric|mylohyoid|geniohyoid|omohyoid|sternohyoid|sternothyroid|thyrohyoid|longus capitis|longus colli|splenius|\bneck\b|facial|olfactory|trochlear|trigeminal|abducens|vestibulocochlear|glossopharyngeal|\bvagus|accessory nerve|hypoglossal|cranial nerve|brain|cerebr|cerebell|\bpons\b|medulla oblong|thalam|hypothalam|pituit|pineal|fornix|corpus callosum|meninge|dura mater|pia mater|arachnoid|carotid|jugular|basilar)/i],
+    // Connective tissue first: fasciae, septa, retinacula, tendon sheaths,
+    // aponeuroses, bursae, ligaments, tracts — grouped together so the muscle
+    // lists stay clean (the muscle TENSOR FASCIAE LATAE is excluded in regionFor).
+    ["Connective tissue", /(\bfascia\b|fasciae|aponeuros|retinacul|bursae?|\btendon\b|tendinous ring|intermuscular septum|\bseptum\b|linea alba|iliotibial|\btract\b|\braphe\b|\bsheath\b|fibrous sheath|cruciform part|suspensory ligament|\bligament\b|iliopectineal arch|tendinous inscription)/i],
+    ["Head & Neck", /(crani|skull|frontal bone|parietal|temporal bone|occipital|sphenoid|ethmoid|maxilla|mandib|nasal|zygomat|palatine|vomer|lacrimal|hyoid|concha|tooth|teeth|incisor|canine|molar|premolar|orbit|petrous|mastoid|sella|cribriform|ossicle|incus|malleus|stapes|cochle|tympan|auditory|eyelid|eyeball|ocul|optic|retina|cornea|sclera|\biris\b|conjunctiv|lens|\btarsus\b|tongue|lingu|laryn|pharyn|epiglott|cricoid|cricothyroid|arytenoid|thyroid cartilage|trachea|parotid|submandibular|sublingual|salivary|masseter|temporalis|pterygoid|buccinator|bucinator|orbicularis|zygomaticus|risorius|mentalis|platysma|frontalis|occipitofrontalis|epicrani|procerus|corrugator|nasalis|depressor|levator labii|levator anguli|levator nasolabialis|levator palpebrae|auricular|sternocleidomastoid|scalen|digastric|mylohyoid|geniohyoid|omohyoid|sternohyoid|sternothyroid|thyrohyoid|\bcapitis\b|longus colli|splenius|genioglossus|hyoglossus|styloglossus|palatoglossus|constrictor|stylo|salpingo|tensor veli|levator veli|uvula|superior rectus muscle|inferior rectus muscle|medial rectus muscle|lateral rectus muscle|superior oblique muscle|inferior oblique muscle|\bneck\b|facial|olfactory|trochlear|trigeminal|abducens|vestibulocochlear|glossopharyngeal|\bvagus|accessory nerve|hypoglossal|cranial nerve|brain|cerebr|cerebell|\bpons\b|medulla oblong|thalam|hypothalam|pituit|pineal|fornix|corpus callosum|meninge|dura mater|pia mater|arachnoid|carotid|jugular|basilar)/i],
     ["Spine & Back", /(vertebra|atlas|axis|intervertebral|sacrum|sacral|coccy|spinal cord|spinal nerve|spinal|erector|iliocostalis|longissimus|spinalis|multifidus|rotatores|interspinal|intertransvers|semispinalis|latissimus|trapezius|rhomboid|levator scapulae|serratus posterior|quadratus lumborum|\bdorsal)/i],
-    ["Thorax", /(\brib\b|costal|sternum|manubri|xiphoid|thoracic cage|intercostal|pectoral|subclavius|diaphragm|heart|cardiac|atri|ventricl|aorta|aortic|pulmon|vena cava|coronary|myocard|pericard|lung|bronch|pleura|mediastin|azygos|thoracic duct|esophagus|oesophagus|mammary|subclavian|brachiocephalic)/i],
-    ["Abdomen & Pelvis", /(abdom|rectus abdominis|external oblique|internal oblique|transvers abdomin|pyramidalis|inguinal|stomach|gastr|hepat|liver|gallbladder|\bbile|cystic|intestin|duoden|jejun|ileum|colon|caec|cecum|rectum|anal|append|kidney|renal|ureter|bladder|urethra|spleen|splenic|pancrea|adrenal|suprarenal|portal|mesenter|omentum|peritone|psoas|iliacus|iliac|gluteus|glute|piriformis|obturator|levator ani|coccygeus|pelvi|ilium|ischium|pubis|pubic|hip bone|acetabul|sacro|prostate|uter|ovar|testis|testicular|deferens|seminal|vagina|perineum|pudendal)/i],
-    ["Upper Limb", /(clavicl|scapul|humerus|radius|ulna|carp|metacarp|scaphoid|lunate|triquetr|pisiform|trapezium|trapezoid|capitate|hamate|finger of hand|phalanx.*hand|\bhand\b|wrist|deltoid|biceps brachii|triceps brachii|brachialis|brachioradialis|coracobrachialis|supraspinatus|infraspinatus|teres (major|minor)|subscapularis|pronator|supinator|flexor (carpi|digitorum|pollicis)|extensor (carpi|digitorum|pollicis|indicis)|abductor pollicis|adductor pollicis|opponens|lumbrical.*hand|interosse.*hand|thenar|hypothenar|palmar|axillary|brachial|cephalic|basilic|radial|ulnar|median nerve|musculocutaneous)/i],
-    ["Lower Limb", /(femur|patella|tibia|fibula|tarsal|metatars|calcaneus|talus|cuboid|navicular|cuneiform|sesamoid|finger of foot|phalanx.*foot|\bfoot\b|ankle|\bknee|thigh|\bleg\b|quadricep|rectus femoris|vastus|sartorius|gracilis|pectineus|adductor (longus|brevis|magnus|minimus)|hamstring|biceps femoris|semitendinosus|semimembranosus|tensor fasciae|gastrocnem|soleus|plantaris|popliteus|tibialis|peroneus|fibular|flexor (hallucis|digitorum)|extensor (hallucis|digitorum)|abductor hallucis|femoral|saphenous|popliteal|sciatic|tibial nerve|peroneal|sural|plantar|genicular|dorsalis pedis)/i],
+    ["Thorax", /(\brib\b|costal|sternum|manubri|xiphoid|thoracic cage|intercostal|pectoral|subclavius|diaphragm|serratus anterior|levatores.*costarum|levator costae|sternalis|transversus thoracis|heart|cardiac|atri|ventricl|aorta|aortic|pulmon|vena cava|coronary|myocard|pericard|lung|bronch|pleura|mediastin|azygos|thoracic duct|esophagus|oesophagus|mammary|subclavian|brachiocephalic)/i],
+    ["Abdomen & Pelvis", /(abdom|rectus abdominis|external oblique|internal oblique|transvers abdomin|pyramidalis|cremaster|inguinal|stomach|gastr|hepat|liver|gallbladder|\bbile|cystic|intestin|duoden|jejun|ileum|colon|caec|cecum|rectum|anal sphincter|sphincter ani|pubo-?analis|append|kidney|renal|ureter|bladder|urethra|spleen|splenic|pancrea|adrenal|suprarenal|portal|mesenter|omentum|peritone|psoas|iliacus|iliac|gluteus|glute|piriformis|obturator|levator ani|coccygeus|gemellus|quadratus femoris|bulbospongiosus|ischiocavernosus|perineum|perineal|pelvi|ilium|ischium|pubis|pubic|hip bone|acetabul|sacro|prostate|uter|ovar|testis|testicular|deferens|seminal|vagina|pudendal)/i],
+    ["Upper Limb", /(clavicl|scapul|humerus|radius|ulna|carp|metacarp|scaphoid|lunate|triquetr|pisiform|trapezium|trapezoid|capitate|hamate|finger of hand|phalanx.*hand|\bhand\b|wrist|deltoid|biceps brachii|triceps brachii|brachialis|brachioradialis|coracobrachialis|anconeus|supraspinatus|infraspinatus|teres (major|minor)|subscapularis|pronator|supinator|flexor (carpi|digitorum|pollicis|digiti minimi.*hand)|extensor (carpi|digitorum|pollicis|indicis|digiti)|abductor pollicis|adductor pollicis|abductor digiti minimi.*hand|opponens|lumbrical.*hand|interosse.*hand|palmaris|thenar|hypothenar|palmar|axillary|brachial|cephalic|basilic|radial|ulnar|median nerve|musculocutaneous)/i],
+    ["Lower Limb", /(femur|patella|tibia|fibula|tarsal|metatars|calcaneus|talus|cuboid|navicular|cuneiform|sesamoid|finger of foot|phalanx.*foot|\bfoot\b|ankle|\bknee|thigh|\bleg\b|quadricep|rectus femoris|vastus|sartorius|gracilis|pectineus|adductor (longus|brevis|magnus|minimus|hallucis)|hamstring|biceps femoris|semitendinosus|semimembranosus|tensor fasciae|gastrocnem|soleus|plantaris|popliteus|tibialis|peroneus|fibular|flexor (hallucis|digitorum|digiti minimi.*foot)|extensor (hallucis|digitorum)|abductor hallucis|abductor digiti minimi.*foot|quadratus plantae|lumbrical.*foot|interosse.*foot|femoral|saphenous|popliteal|sciatic|tibial nerve|peroneal|sural|plantar|genicular|dorsalis pedis)/i],
   ];
   function regionFor(display) {
+    if (/tensor fasciae latae/i.test(display)) return "Lower Limb"; // a muscle, not fascia
     for (const [name, re] of REGION_RULES) if (re.test(display)) return name;
     return "Other Structures";
   }
@@ -87,11 +92,22 @@ window.AnatomyGLB = (function () {
   const VEIN_RE = /\bvein|venous|vena|venae|jugular|azygos|\bportal\b|cava|\bsinus\b/i;
   const CNS_RE = /brain|cerebr|cerebell|medulla|\bpons\b|spinal cord|thalam|callosum|gyrus|cortex/i;
 
-  // Returns { color: THREE.Color, roughness, metalness, env } for a structure.
+  // Returns { color, roughness, metalness, env, opacity } for a structure.
+  // opacity null => use the system default; set it for clear parts (cornea).
   function tintFor(systemId, key, name, fallbackHex) {
     const tag = (name || key || "").toLowerCase();
     const c = new THREE.Color();
-    let roughness = 0.62, metalness = 0.0, env = 1.0;
+    let roughness = 0.62, metalness = 0.0, env = 1.0, opacity = null;
+
+    if (systemId === "eyes") {
+      // Build a believable eyeball: white wet sclera, colored iris, a near-black
+      // lens read as the pupil through the iris opening, and a clear glossy cornea.
+      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.05, 0.9); roughness = 0.04; env = 1.6; opacity = 0.12; }
+      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.55, 0.34); roughness = 0.3; env = 1.3; }          // blue-grey iris
+      else if (/lens/.test(tag)) { c.setHSL(0.0, 0.0, 0.02); roughness = 0.18; env = 1.2; }            // dark -> pupil
+      else { c.setHSL(0.07, 0.18, 0.93); roughness = 0.28; env = 1.35; }                               // sclera (white, wet)
+      return { color: c, roughness, metalness, env, opacity };
+    }
 
     if (systemId === "muscular") {
       if (PALE_RE.test(tag)) {
@@ -124,7 +140,7 @@ window.AnatomyGLB = (function () {
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
     }
-    return { color: c, roughness, metalness, env };
+    return { color: c, roughness, metalness, env, opacity };
   }
 
   // ---- catalog assembly ------------------------------------------------
@@ -226,6 +242,9 @@ window.AnatomyGLB = (function () {
             else if (node.material) node.material = node.material.clone();
             const mats = Array.isArray(node.material) ? node.material : [node.material];
             const tint = tintFor(systemId, key, display, systemColor);
+            // per-mesh base opacity: a clear part (e.g. cornea) overrides the
+            // system default so it stays see-through under X-ray too.
+            const baseOpacity = tint.opacity != null ? tint.opacity : systemOpacity;
             mats.forEach((mat) => {
               if (!mat) return;
               if (mat.color) mat.color.copy(tint.color);
@@ -233,10 +252,10 @@ window.AnatomyGLB = (function () {
               if ("metalness" in mat) mat.metalness = tint.metalness;
               if ("envMapIntensity" in mat) mat.envMapIntensity = tint.env;
               if (mat.emissive) mat.emissive.setHex(0x000000);
-              if (systemOpacity < 1) {
+              if (baseOpacity < 1) {
                 mat.transparent = true;
-                mat.opacity = systemOpacity;
-                mat.depthWrite = false;
+                mat.opacity = baseOpacity;
+                mat.depthWrite = baseOpacity > 0.9;
               }
             });
 
@@ -244,7 +263,7 @@ window.AnatomyGLB = (function () {
             node.userData.systemId = systemId;
             node.userData.modelName = rawName;
             node.userData.material = node.material;
-            node.userData.baseOpacity = systemOpacity; // for X-ray
+            node.userData.baseOpacity = baseOpacity; // for X-ray
             allMeshes.push(node);
             (meshesByStructure[sid] = meshesByStructure[sid] || []).push(node);
           });

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=15" />
+  <link rel="stylesheet" href="css/styles.css?v=16" />
 </head>
 <body>
   <!-- ============================ HEADER ============================ -->
@@ -46,6 +46,17 @@
         <div class="loading-text">Loading…</div>
       </div>
       <div class="floating-label" id="floating-label" style="display:none"></div>
+
+      <!-- Anatomical view cube: standard orientation presets -->
+      <div class="view-cube" id="view-cube" role="group" aria-label="Camera views">
+        <button data-view="reset" class="vc-recenter" title="Re-center / reset view" aria-label="Re-center">⌖</button>
+        <button data-view="ant" title="Anterior (front)">ANT</button>
+        <button data-view="pos" title="Posterior (back)">POS</button>
+        <button data-view="lat" title="Lateral (side)">LAT</button>
+        <button data-view="med" title="Medial">MED</button>
+        <button data-view="sup" title="Superior (top)">SUP</button>
+        <button data-view="inf" title="Inferior (bottom)">INF</button>
+      </div>
 
       <div class="isolate-banner" id="isolate-banner" style="display:none">
         <span>Isolated: <strong id="isolate-name"></strong></span>
@@ -98,9 +109,9 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
   <!-- App -->
-  <script src="js/data.js?v=15"></script>
-  <script src="js/body-model.js?v=15"></script>
-  <script src="js/glb-loader.js?v=15"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/data.js?v=16"></script>
+  <script src="js/body-model.js?v=16"></script>
+  <script src="js/glb-loader.js?v=16"></script>
+  <script src="js/app.js?v=16"></script>
 </body>
 </html>
