@@ -103,9 +103,9 @@ window.AnatomyGLB = (function () {
       // Build a believable eyeball: white wet sclera, colored iris, a near-black
       // lens read as the pupil through the iris opening, and a clear glossy cornea.
       if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.05, 0.9); roughness = 0.04; env = 1.6; opacity = 0.12; }
-      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.55, 0.34); roughness = 0.3; env = 1.3; }          // blue-grey iris
+      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.42, 0.32); roughness = 0.32; env = 1.2; }          // blue-grey iris
       else if (/lens/.test(tag)) { c.setHSL(0.0, 0.0, 0.02); roughness = 0.18; env = 1.2; }            // dark -> pupil
-      else { c.setHSL(0.07, 0.18, 0.93); roughness = 0.28; env = 1.35; }                               // sclera (white, wet)
+      else { c.setHSL(0.07, 0.12, 0.82); roughness = 0.3; env = 1.2; }                               // sclera (white, wet)
       return { color: c, roughness, metalness, env, opacity };
     }
 
@@ -143,7 +143,7 @@ window.AnatomyGLB = (function () {
       } else if (/oral region|labial commissure|angle of mouth|upper lip|lower lip|tubercle of upper lip/.test(tag)) {
         c.setHSL(0.02, 0.3, 0.56); roughness = 0.55; env = 1.05;
       } else {
-        c.setHSL(0.045, 0.42, clamp(0.62 + j(key, 71, 0.03), 0.55, 0.68)); roughness = 0.72; env = 1.0;
+        c.setHSL(0.05, 0.46, clamp(0.6 + j(key, 71, 0.03), 0.53, 0.66)); roughness = 0.7; env = 1.0;
       }
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
