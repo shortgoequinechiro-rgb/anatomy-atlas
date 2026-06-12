@@ -62,6 +62,71 @@ window.AnatomyGLB = (function () {
     return "Other Structures";
   }
 
+  // ---- realistic per-structure tinting ---------------------------------
+  // Z-Anatomy ships ONE flat material per system, which makes the body read
+  // like a uniform clay mannequin. We instead give every structure a stable,
+  // slightly individual tone derived deterministically from its name, plus
+  // material-class overrides (deep-red muscle belly vs. pale glistening
+  // tendon/aponeurosis, warm bone with subtle variation, cartilage, enamel,
+  // arterial-red vs. venous-blue). This is what makes the model read with real
+  // anatomical depth and definition instead of a single smeared color.
+  function hash01(str, salt) {
+    let h = (2166136261 ^ (salt || 0)) >>> 0;
+    const s = String(str);
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    return ((h >>> 0) % 100000) / 100000;
+  }
+  const j = (key, salt, amt) => (hash01(key, salt) - 0.5) * 2 * amt; // signed jitter
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  // pale connective tissue (tendon / aponeurosis / fascia / ligament …)
+  const PALE_RE = /tendon|aponeuros|fascia|sheath|retinacul|raphe|galea|ligament|membrane|septum|\blinea\b|\bband\b|trochlea|interosseous membrane/i;
+  const CART_RE = /cartilage|\bdisc\b|meniscus|labrum|symphysis|costal cartilage/i;
+  const TEETH_RE = /tooth|teeth|incisor|canine|molar|premolar|enamel|dentin/i;
+  const VEIN_RE = /\bvein|venous|vena|venae|jugular|azygos|\bportal\b|cava|\bsinus\b/i;
+  const CNS_RE = /brain|cerebr|cerebell|medulla|\bpons\b|spinal cord|thalam|callosum|gyrus|cortex/i;
+
+  // Returns { color: THREE.Color, roughness, metalness, env } for a structure.
+  function tintFor(systemId, key, name, fallbackHex) {
+    const tag = (name || key || "").toLowerCase();
+    const c = new THREE.Color();
+    let roughness = 0.62, metalness = 0.0, env = 1.0;
+
+    if (systemId === "muscular") {
+      if (PALE_RE.test(tag)) {
+        // tendon / aponeurosis / fascia — pale, slightly glossy ivory-tan
+        c.setHSL(0.095, 0.28, clamp(0.74 + j(key, 11, 0.04), 0.66, 0.82));
+        roughness = 0.5; env = 1.05;
+      } else {
+        // muscle belly — deep red, individually varied per muscle
+        const h = clamp(0.013 + j(key, 21, 0.012), 0.0, 0.045);   // red ↔ slight crimson/orange
+        const s = clamp(0.6 + j(key, 22, 0.1), 0.42, 0.78);
+        const l = clamp(0.34 + j(key, 23, 0.06), 0.24, 0.43);
+        c.setHSL(h, s, l);
+        roughness = 0.45; env = 1.18;                              // wet, glistening sheen
+      }
+    } else if (systemId === "skeletal") {
+      if (CART_RE.test(tag)) { c.setHSL(0.55, 0.12, 0.8); roughness = 0.5; env = 1.1; }      // bluish translucent cartilage
+      else if (TEETH_RE.test(tag)) { c.setHSL(0.12, 0.05, 0.93); roughness = 0.32; env = 1.2; } // glossy enamel
+      else { c.setHSL(0.097, 0.2, clamp(0.8 + j(key, 31, 0.045), 0.72, 0.86)); roughness = 0.6; } // warm ivory bone, varied
+    } else if (systemId === "cardiovascular") {
+      if (VEIN_RE.test(tag)) c.setHSL(0.62, 0.42, clamp(0.42 + j(key, 41, 0.05), 0.34, 0.5)); // venous blue
+      else c.setHSL(clamp(0.004 + j(key, 42, 0.006), 0, 0.03), 0.64, clamp(0.42 + j(key, 43, 0.05), 0.34, 0.5)); // arterial red
+      roughness = 0.4; env = 1.15;
+    } else if (systemId === "nervous") {
+      if (CNS_RE.test(tag)) c.setHSL(0.09, 0.16, 0.78);                                       // CNS pale beige
+      else c.setHSL(0.13, 0.5, clamp(0.6 + j(key, 51, 0.05), 0.52, 0.68));                    // peripheral nerve yellow
+      roughness = 0.55;
+    } else if (systemId === "visceral") {
+      c.setHSL(clamp(0.04 + j(key, 61, 0.02), 0.0, 0.08), 0.45, clamp(0.45 + j(key, 62, 0.08), 0.34, 0.56)); // organ brown-reds
+      roughness = 0.48; env = 1.12;
+    } else {
+      c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
+    }
+    return { color: c, roughness, metalness, env };
+  }
+
   // ---- catalog assembly ------------------------------------------------
   function buildCatalog(structMap, systemId, systemName, systemColor) {
     // group structures by region
@@ -153,17 +218,20 @@ window.AnatomyGLB = (function () {
             }
             if (side) structMap[sid].sides.add(side);
 
-            // Clone the material so each mesh can be highlighted independently
-            // (Z-Anatomy often shares one material across many bones), then give
-            // the bones a consistent ivory tone with real shading depth.
+            // Clone the material so each mesh can be highlighted/tinted
+            // independently (Z-Anatomy shares one material across many parts),
+            // then apply a realistic per-structure tone + PBR class so the body
+            // reads with anatomical depth instead of one flat system color.
             if (Array.isArray(node.material)) node.material = node.material.map((m) => (m ? m.clone() : m));
             else if (node.material) node.material = node.material.clone();
             const mats = Array.isArray(node.material) ? node.material : [node.material];
+            const tint = tintFor(systemId, key, display, systemColor);
             mats.forEach((mat) => {
               if (!mat) return;
-              if (mat.color) mat.color.setHex(systemColor);
-              if ("roughness" in mat) mat.roughness = 0.72;
-              if ("metalness" in mat) mat.metalness = 0.0;
+              if (mat.color) mat.color.copy(tint.color);
+              if ("roughness" in mat) mat.roughness = tint.roughness;
+              if ("metalness" in mat) mat.metalness = tint.metalness;
+              if ("envMapIntensity" in mat) mat.envMapIntensity = tint.env;
               if (mat.emissive) mat.emissive.setHex(0x000000);
               if (systemOpacity < 1) {
                 mat.transparent = true;
@@ -188,6 +256,15 @@ window.AnatomyGLB = (function () {
             else if (sides.length === 1)
               st.description += " (" + sides[0] + " side present in this view).";
             delete st.sides;
+
+            // Investing fascia sheets (fascia lata, brachial/crural/pectoral/
+            // thoracolumbar fascia, etc.) drape whole body segments and hide the
+            // muscle bellies. Hide them by default so the muscles read like a
+            // real anatomical model; they stay fully selectable/searchable and
+            // "Show all" (or the info-panel Show button) brings them back.
+            if (systemId === "muscular" && /\bfascia\b|fasciae|aponeuros/i.test(st.name) && !/tensor fasciae latae/i.test(st.name)) {
+              st.defaultHidden = true;
+            }
           });
 
           // Fit a single model to ~1.8 units tall, centered. For multi-system
