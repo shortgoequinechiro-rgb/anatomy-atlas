@@ -1082,7 +1082,7 @@
     { file: "models/z-anatomy-cardiovascular.glb", id: "cardiovascular", name: "Cardiovascular system", color: 0xc0392b, opacity: 0.95, on: false },
     { file: "models/z-anatomy-nervous.glb", id: "nervous", name: "Nervous system & senses", color: 0xe6c84d, opacity: 0.9, on: false },
     { file: "models/z-anatomy-visceral.glb", id: "visceral", name: "Visceral organs", color: 0xc98a55, opacity: 0.92, on: false },
-    { file: "models/skin.glb?v=8", id: "skin", name: "Skin", color: 0xe3ad92, opacity: 1, on: false },
+    { file: "models/skin.glb?v=9", id: "skin", name: "Skin", color: 0xe3ad92, opacity: 1, on: false },
   ];
 
   // Eyes: a tiny always-on overlay (sclera/cornea/iris/lens) so the figure has
