@@ -269,6 +269,30 @@
                 "The large diamond-shaped muscle of the upper back and neck. Shrugs the shoulders, rotates the scapula, and supports the head.",
               build: { shape: "box", args: [0.30, 0.18, 0.05], pos: [0, 1.36, -0.10] },
             },
+            {
+              id: "latissimus-dorsi",
+              name: "Latissimus Dorsi",
+              latin: "Musculus latissimus dorsi",
+              description:
+                "The broad muscle of the back that sweeps from the lower spine up to the upper arm. Pulls the arm down and back — the main mover in pull-ups and rowing.",
+              build: { shape: "box", args: [0.10, 0.22, 0.045], pos: [0.085, 1.16, -0.07], rot: [0, 0, 0.12], mirror: true },
+            },
+            {
+              id: "external-oblique",
+              name: "External Oblique",
+              latin: "Musculus obliquus externus abdominis",
+              description:
+                "The muscle on the side of the abdomen. Bends and rotates the trunk and compresses the abdomen with the rest of the core.",
+              build: { shape: "box", args: [0.055, 0.14, 0.07], pos: [0.10, 1.04, 0.04], mirror: true },
+            },
+            {
+              id: "serratus-anterior",
+              name: "Serratus Anterior",
+              latin: "Musculus serratus anterior",
+              description:
+                "The finger-like muscle along the side of the rib cage. Pulls the shoulder blade forward around the ribs — the 'boxer’s muscle'.",
+              build: { shape: "box", args: [0.03, 0.09, 0.06], pos: [0.115, 1.15, 0.05], mirror: true },
+            },
           ],
         },
         {
@@ -281,7 +305,7 @@
               latin: "Musculus deltoideus",
               description:
                 "The rounded muscle that caps the shoulder. Lifts the arm away from the body in every direction and gives the shoulder its contour.",
-              build: { shape: "ellipsoid", args: [0.06, 0.07, 0.06], pos: [0.20, 1.42, 0], mirror: true },
+              build: { shape: "ellipsoid", args: [0.062, 0.078, 0.062], pos: [0.205, 1.43, 0.0], mirror: true },
             },
             {
               id: "biceps",
@@ -289,7 +313,23 @@
               latin: "Musculus biceps brachii",
               description:
                 "The two-headed muscle on the front of the upper arm. Bends the elbow and supinates the forearm; the classic 'flex' muscle.",
-              build: { shape: "ellipsoid", args: [0.035, 0.11, 0.04], pos: [0.205, 1.27, 0.03], mirror: true },
+              build: { shape: "fusiform", args: [0.034, 0.20, 0.55], pos: [0.205, 1.29, 0.035], mirror: true },
+            },
+            {
+              id: "triceps",
+              name: "Triceps Brachii",
+              latin: "Musculus triceps brachii",
+              description:
+                "The three-headed muscle on the back of the upper arm. Straightens (extends) the elbow — the main muscle behind pushing and pressing.",
+              build: { shape: "fusiform", args: [0.032, 0.21, 0.45], pos: [0.205, 1.28, -0.035], mirror: true },
+            },
+            {
+              id: "forearm-flexors",
+              name: "Forearm Flexors",
+              latin: "Musculi antebrachii",
+              description:
+                "The muscle mass of the forearm that flexes the wrist and fingers and drives grip. Full near the elbow, tapering to tendons at the wrist.",
+              build: { shape: "fusiform", args: [0.03, 0.24, 0.4], pos: [0.205, 0.99, 0.02], mirror: true },
             },
           ],
         },
@@ -311,7 +351,7 @@
               latin: "Musculus quadriceps femoris",
               description:
                 "The four-part muscle group on the front of the thigh. Straightens the knee and the only group that also flexes the hip (rectus femoris).",
-              build: { shape: "ellipsoid", args: [0.055, 0.18, 0.055], pos: [0.09, 0.64, 0.04], mirror: true },
+              build: { shape: "fusiform", args: [0.057, 0.26, 0.55], pos: [0.09, 0.63, 0.045], mirror: true },
             },
             {
               id: "gastrocnemius",
@@ -319,7 +359,45 @@
               latin: "Musculus gastrocnemius",
               description:
                 "The prominent calf muscle. Points the foot down (plantarflexion) and bends the knee; powers walking, running, and jumping.",
-              build: { shape: "ellipsoid", args: [0.04, 0.13, 0.045], pos: [0.09, 0.26, -0.04], mirror: true },
+              build: { shape: "fusiform", args: [0.046, 0.18, 0.62], pos: [0.09, 0.30, -0.045], mirror: true },
+            },
+            {
+              id: "hamstrings",
+              name: "Hamstrings",
+              latin: "Musculi ischiocrurales",
+              description:
+                "The three muscles on the back of the thigh. Bend the knee and extend the hip; powerful in sprinting and prone to strains.",
+              build: { shape: "fusiform", args: [0.05, 0.24, 0.5], pos: [0.09, 0.63, -0.05], mirror: true },
+            },
+            {
+              id: "adductors",
+              name: "Adductors",
+              latin: "Musculi adductores",
+              description:
+                "The inner-thigh group that pulls the legs toward the midline and stabilizes the hip while walking and running.",
+              build: { shape: "fusiform", args: [0.034, 0.22, 0.45], pos: [0.05, 0.62, 0.01], mirror: true },
+            },
+            {
+              id: "tibialis-anterior",
+              name: "Tibialis Anterior",
+              latin: "Musculus tibialis anterior",
+              description:
+                "The strap muscle along the front of the shin. Lifts the foot (dorsiflexion) and controls its descent at each heel strike.",
+              build: { shape: "fusiform", args: [0.022, 0.2, 0.45], pos: [0.108, 0.27, 0.04], mirror: true },
+            },
+          ],
+        },
+        {
+          id: "neck-muscles",
+          name: "Neck",
+          structures: [
+            {
+              id: "sternocleidomastoid",
+              name: "Sternocleidomastoid",
+              latin: "Musculus sternocleidomastoideus",
+              description:
+                "The prominent strap of the neck running from behind the ear to the collarbone. Turns and tilts the head; stands out when the head rotates.",
+              build: { shape: "fusiform", args: [0.013, 0.12, 0.5], pos: [0.035, 1.49, 0.04], rot: [0.18, 0, 0.22], mirror: true },
             },
           ],
         },
@@ -478,6 +556,20 @@
               description:
                 "The bundle of nerve fibers running through the vertebral canal, relaying signals between brain and body and driving reflexes.",
               build: { shape: "cylinder", args: [0.01, 0.01, 0.62], pos: [0, 1.22, -0.025] },
+            },
+          ],
+        },
+        {
+          id: "special-senses",
+          name: "Special Senses",
+          structures: [
+            {
+              id: "eye",
+              name: "Eyeball",
+              latin: "Oculus",
+              description:
+                "The organ of sight — a fluid-filled sphere with a white sclera, a colored iris that controls how much light enters, and a central pupil. The lens focuses light onto the retina, which signals the brain through the optic nerve.",
+              build: { shape: "eyeball", args: [0.015], pos: [0.035, 1.645, 0.085], mirror: true },
             },
           ],
         },
