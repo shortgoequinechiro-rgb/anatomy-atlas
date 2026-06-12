@@ -863,6 +863,15 @@
     document.getElementById("btn-reset").addEventListener("click", resetView);
     document.getElementById("btn-show-all").addEventListener("click", () => {
       State.hidden.clear();
+      // Keep the investing fascia sheets (fascia lata, brachial/abdominal
+      // fascia, aponeuroses…) hidden — otherwise they drape over and visually
+      // "whiten" the muscle bellies. "Show all" still reveals every system and
+      // any muscle you'd hidden; the fascia stay out of the way and remain
+      // individually selectable (use a fascia's "Show" button to reveal it).
+      State.autoHidden = State.autoHidden || new Set();
+      Object.values(ACTIVE.index).forEach((st) => {
+        if (st.defaultHidden) { State.hidden.add(st.id); State.autoHidden.add(st.id); }
+      });
       State.isolateId = null;
       State.xray = 1;
       updateXraySlider();
