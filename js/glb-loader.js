@@ -140,7 +140,7 @@ window.AnatomyGLB = (function () {
     } else if (systemId === "skin") {
       if (/hair|eyelash/.test(tag)) {
         c.setHSL(0.07, 0.4, clamp(0.16 + j(key, 73, 0.03), 0.1, 0.22)); roughness = 0.9; env = 0.5;
-      } else if (/oral region|labial commissure|angle of mouth|upper lip|lower lip|tubercle of upper lip/.test(tag)) {
+      } else if (/lip|labial|oral region/.test(tag)) {
         c.setHSL(0.02, 0.3, 0.56); roughness = 0.55; env = 1.05;
       } else {
         c.setHSL(0.05, 0.46, clamp(0.6 + j(key, 71, 0.03), 0.53, 0.66)); roughness = 0.7; env = 1.0;
