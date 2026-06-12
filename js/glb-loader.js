@@ -102,10 +102,10 @@ window.AnatomyGLB = (function () {
     if (systemId === "eyes") {
       // Build a believable eyeball: white wet sclera, colored iris, a near-black
       // lens read as the pupil through the iris opening, and a clear glossy cornea.
-      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.05, 0.9); roughness = 0.04; env = 1.6; opacity = 0.12; }
+      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.05, 0.88); roughness = 0.18; env = 0.4; opacity = 0.1; }
       else if (/iris/.test(tag)) { c.setHSL(0.57, 0.42, 0.32); roughness = 0.32; env = 1.2; }          // blue-grey iris
       else if (/lens/.test(tag)) { c.setHSL(0.0, 0.0, 0.02); roughness = 0.18; env = 1.2; }            // dark -> pupil
-      else { c.setHSL(0.07, 0.12, 0.82); roughness = 0.3; env = 1.2; }                               // sclera (white, wet)
+      else { c.setHSL(0.06, 0.10, 0.86); roughness = 0.38; env = 0.7; }                               // sclera (white, wet)
       return { color: c, roughness, metalness, env, opacity };
     }
 
@@ -262,7 +262,7 @@ window.AnatomyGLB = (function () {
               if ("metalness" in mat) mat.metalness = tint.metalness;
               if ("envMapIntensity" in mat) mat.envMapIntensity = tint.env;
               if (mat.emissive) mat.emissive.setHex(systemId === "skin" ? 0x431912 : 0x000000);
-              if (systemId === "skin") { mat.emissiveIntensity = 0.12; mat.side = THREE.DoubleSide; }
+              if (systemId === "skin") { mat.emissiveIntensity = 0.1; mat.side = THREE.DoubleSide; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; }
               if (baseOpacity < 1) {
                 mat.transparent = true;
                 mat.opacity = baseOpacity;
