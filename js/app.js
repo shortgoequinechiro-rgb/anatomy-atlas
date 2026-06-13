@@ -33,8 +33,7 @@
   // built-in placeholder catalog by default, and is replaced by a model-
   // derived catalog when a real GLB is loaded.
   let ACTIVE = window.ANATOMY;
-  const STORAGE_VERSION = 2;
-  const FACE_LAYER_IDS = new Set(["eyes", "skin"]);
+  const STORAGE_VERSION = 3;
 
   // Real anatomical definitions extracted from Z-Anatomy (key -> text). Loaded
   // once; selection looks up a definition and falls back to the generic note.
@@ -1057,6 +1056,10 @@
     initThree();
     State.model = window.AnatomyBodyModel.build(THREE);
     scene.add(State.model.group);
+    // On a server (GitHub Pages), the real Z-Anatomy GLB is about to load — keep
+    // the rough procedural placeholder OFF-SCREEN so it never flashes. It stays
+    // visible only on file:// where there is no GLB to auto-load (offline mode).
+    if (location.protocol !== "file:") State.model.group.visible = false;
 
     buildTree();
     buildLayers();
@@ -1209,7 +1212,9 @@
   // layers (which lazy-load their systems) and an optional ?structure= deep link.
   function maybeAutoLoadModel() {
     const status = document.getElementById("glb-status");
+    showLoading(true, "Loading body…");
     if (location.protocol === "file:") {
+      showLoading(false);
       status.innerHTML =
         'Tip: launch <code>serve.command</code> to load the full Z-Anatomy body — or use “Load GLB…”.';
       return;
@@ -1254,6 +1259,17 @@
           const cfg = MODEL_SET.find((c) => c.id === id);
           if (cfg) ensureSystem(cfg).then(applyVisibility);
         });
+      } else {
+        // Fresh visit (no saved state, or reset after a version bump): show the
+        // FULL body — every layer on — for a complete first impression. The
+        // skeleton is already in; lazy-load the rest, which stream in over it.
+        MODEL_SET.forEach((cfg) => State.systemEnabled.add(cfg.id));
+        buildLayers();
+        persistState();
+        MODEL_SET.forEach((cfg) => {
+          if (cfg.id === "skeletal") return;
+          ensureSystem(cfg).then(applyVisibility);
+        });
       }
       const deep = params.get("structure");
       if (deep) {
@@ -1282,10 +1298,9 @@
     try {
       const saved = JSON.parse(localStorage.getItem("atlas.state") || "null");
       if (!saved) return null;
-      if ((saved.version || 0) < STORAGE_VERSION && Array.isArray(saved.enabled)) {
-        saved.enabled = saved.enabled.filter((id) => !FACE_LAYER_IDS.has(id));
-      }
-      saved.version = STORAGE_VERSION;
+      // On a version bump, discard the old state so the new default (all layers
+      // on) takes effect once; the user's later toggles persist again normally.
+      if ((saved.version || 0) < STORAGE_VERSION) return null;
       return saved;
     } catch (e) {
       return null;
