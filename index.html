@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=35" />
+  <link rel="stylesheet" href="css/styles.css?v=36" />
 </head>
 <body>
   <!-- ============================ HEADER ============================ -->
@@ -124,9 +124,54 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 
   <!-- App -->
-  <script src="js/data.js?v=35"></script>
-  <script src="js/body-model.js?v=35"></script>
-  <script src="js/glb-loader.js?v=35"></script>
-  <script src="js/app.js?v=35"></script>
+  <script src="js/data.js?v=36"></script>
+  <script src="js/body-model.js?v=36"></script>
+  <script src="js/glb-loader.js?v=36"></script>
+  <!-- Sculpted head overlay (Lee Perry-Smith, CC-BY 3.0). Wraps AnatomyGLB.load so
+       that when the skeleton finishes loading we parent a real sculpted head into
+       its group (shared coordinate space). Tunable constants below. -->
+  <script>
+  (function(){
+    var HEAD = {
+      url: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb",
+      scale: 0.030,            // size relative to skeleton native units
+      pos: [0.0, 1.580, 0.040],// x,y,z in skeleton native coords (skull ~y1.48-1.705)
+      rotY: 0.0,               // yaw (radians); flip to Math.PI if facing backward
+      color: 0xddae9c          // skin tone applied over the model's normal map
+    };
+    if (!window.AnatomyGLB || typeof THREE === "undefined" || !THREE.GLTFLoader) return;
+    var origLoad = window.AnatomyGLB.load;
+    window.AnatomyGLB.load = function(url, opts){
+      var p = origLoad.call(this, url, opts);
+      if (opts && opts.systemId === "skeletal") {
+        p.then(function(loaded){
+          try {
+            var gl = new THREE.GLTFLoader();
+            gl.load(HEAD.url, function(gltf){
+              var head = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+              if (!head) return;
+              head.scale.setScalar(HEAD.scale);
+              head.position.set(HEAD.pos[0], HEAD.pos[1], HEAD.pos[2]);
+              head.rotation.y = HEAD.rotY;
+              head.traverse(function(o){
+                if (o.isMesh && o.material){
+                  o.material = o.material.clone();
+                  if (o.material.color) o.material.color.setHex(HEAD.color);
+                  if ("roughness" in o.material) o.material.roughness = 0.72;
+                  if ("metalness" in o.material) o.material.metalness = 0.0;
+                }
+              });
+              head.name = "SculptedHead";
+              loaded.group.add(head);
+              window.__head = head; // handle for live tuning in the console
+            });
+          } catch(e){ console.warn("head overlay failed", e); }
+        });
+      }
+      return p;
+    };
+  })();
+  </script>
+  <script src="js/app.js?v=36"></script>
 </body>
 </html>
