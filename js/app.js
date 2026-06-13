@@ -1214,6 +1214,13 @@
         'Tip: launch <code>serve.command</code> to load the full Z-Anatomy body — or use “Load GLB…”.';
       return;
     }
+    const params = new URLSearchParams(location.search);
+    if (params.has("resetState")) {
+      try { localStorage.removeItem("atlas.state"); } catch (e) {}
+      params.delete("resetState");
+      const cleanQuery = params.toString();
+      history.replaceState(null, "", location.pathname + (cleanQuery ? "?" + cleanQuery : "") + location.hash);
+    }
     const saved = loadPersisted();
     showLoading(true, "Loading skeleton…");
     State.systemEnabled = new Set(["skeletal"]);
@@ -1248,7 +1255,7 @@
           if (cfg) ensureSystem(cfg).then(applyVisibility);
         });
       }
-      const deep = new URLSearchParams(location.search).get("structure");
+      const deep = params.get("structure");
       if (deep) {
         const d = deep.toLowerCase();
         const id = ACTIVE.index[deep]
