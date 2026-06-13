@@ -137,15 +137,9 @@ window.AnatomyGLB = (function () {
       c.setHSL(clamp(0.04 + j(key, 61, 0.02), 0.0, 0.08), 0.45, clamp(0.45 + j(key, 62, 0.08), 0.34, 0.56)); // organ brown-reds
       roughness = 0.48; env = 1.12;
     } else if (systemId === "skin") {
-      if (/eye/.test(tag)) {
-        c.setHSL(0.08, 0.05, 0.72); roughness = 0.72; env = 0.45;
-      } else if (/hair|eyelash/.test(tag)) {
-        c.setHSL(0.07, 0.24, clamp(0.18 + j(key, 73, 0.025), 0.13, 0.24)); roughness = 0.95; env = 0.25;
-      } else if (/lip|labial/.test(tag)) {
-        c.setHSL(0.02, 0.18, 0.54); roughness = 0.76; env = 0.45;
-      } else {
-        c.setHSL(0.05, 0.28, clamp(0.58 + j(key, 71, 0.025), 0.52, 0.64)); roughness = 0.82; env = 0.42;
-      }
+      c.setHSL(0.09, 0.09, clamp(0.7 + j(key, 71, 0.018), 0.66, 0.74));
+      roughness = 0.88;
+      env = 0.34;
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
     }
@@ -297,6 +291,9 @@ window.AnatomyGLB = (function () {
             // real anatomical model; they stay fully selectable/searchable and
             // "Show all" (or the info-panel Show button) brings them back.
             if (systemId === "muscular" && /\bfascia\b|fasciae|aponeuros/i.test(st.name) && !/tensor fasciae latae/i.test(st.name)) {
+              st.defaultHidden = true;
+            }
+            if (systemId === "skin" && /hair|lip|labial|eyelash/i.test(st.name)) {
               st.defaultHidden = true;
             }
           });

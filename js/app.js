@@ -1085,7 +1085,7 @@
     { file: "models/z-anatomy-nervous.glb", id: "nervous", name: "Nervous system & senses", color: 0xe6c84d, opacity: 0.9, on: false },
     { file: "models/z-anatomy-visceral.glb", id: "visceral", name: "Visceral organs", color: 0xc98a55, opacity: 0.92, on: false },
     { file: "models/eyes.glb", id: "eyes", name: "Eyes", color: 0xd8d2c4, opacity: 0.72, on: false },
-    { file: "models/skin.glb?v=12", id: "skin", name: "Skin", color: 0xe3ad92, opacity: 1, on: false },
+    { file: "models/skin.glb?v=12", id: "skin", name: "Surface", color: 0xbdb8ad, opacity: 0.42, on: false },
   ];
 
   // Merge the loaded systems into one model. The fit (scale + center) is derived
