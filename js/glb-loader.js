@@ -100,10 +100,13 @@ window.AnatomyGLB = (function () {
     let roughness = 0.62, metalness = 0.0, env = 1.0, opacity = null;
 
     if (systemId === "eyes") {
-      // Keep eyes anatomical and readable without making the face portrait-like.
-      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.03, 0.82); roughness = 0.34; env = 0.28; opacity = 0.08; }
-      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.22, 0.38); roughness = 0.48; env = 0.55; }
-      else if (/lens/.test(tag)) { c.setHSL(0.08, 0.05, 0.18); roughness = 0.5; env = 0.35; opacity = 0.72; }
+      // Clinical eye layer: distinct enough to inspect/select parts, subdued
+      // enough to avoid turning the mannequin into a portrait.
+      if (/anterior chamber/.test(tag)) { c.setHSL(0.55, 0.24, 0.72); roughness = 0.22; env = 0.75; opacity = 0.26; }
+      else if (/cornea/.test(tag)) { c.setHSL(0.56, 0.1, 0.86); roughness = 0.08; env = 1.15; opacity = 0.16; }
+      else if (/iris/.test(tag)) { c.setHSL(0.56, 0.58, 0.38); roughness = 0.38; env = 0.78; }
+      else if (/lens/.test(tag)) { c.setHSL(0.12, 0.28, 0.62); roughness = 0.24; env = 0.85; opacity = 0.6; }
+      else if (/sclera/.test(tag)) { c.setHSL(0.1, 0.14, 0.9); roughness = 0.5; env = 0.55; }
       else { c.setHSL(0.09, 0.08, 0.78); roughness = 0.58; env = 0.45; }
       return { color: c, roughness, metalness, env, opacity };
     }
@@ -144,6 +147,50 @@ window.AnatomyGLB = (function () {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
     }
     return { color: c, roughness, metalness, env, opacity };
+  }
+
+  function appendSurfaceEarCaps(root, structMap, meshesByStructure, allMeshes, systemName, systemColor, systemOpacity) {
+    const sid = "m:skin:skin";
+    const st = structMap[sid];
+    if (!st) return;
+
+    const tint = tintFor("skin", "skin-ear-cap", "Skin", systemColor);
+    const mat = new THREE.MeshStandardMaterial({
+      color: tint.color,
+      roughness: tint.roughness,
+      metalness: 0,
+      envMapIntensity: tint.env,
+      transparent: true,
+      opacity: systemOpacity,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2,
+    });
+    if (mat.emissive) mat.emissive.setHex(0x000000);
+
+    [
+      { x: 0.055, z: 0.038, sx: 0.007, sy: 0.020, sz: 0.005, rot: -0.12, name: "Left ear surface closure" },
+      { x: -0.061, z: 0.039, sx: 0.008, sy: 0.021, sz: 0.005, rot: 0.12, name: "Right ear surface closure" },
+    ].forEach((cfg) => {
+      const geom = new THREE.SphereGeometry(1, 28, 18);
+      geom.scale(cfg.sx, cfg.sy, cfg.sz);
+      const cap = new THREE.Mesh(geom, mat.clone());
+      cap.name = cfg.name;
+      cap.position.set(cfg.x, 1.586, cfg.z);
+      cap.rotation.set(0.05, cfg.rot, 0);
+      cap.userData.structureId = sid;
+      cap.userData.systemId = "skin";
+      cap.userData.modelName = cfg.name;
+      cap.userData.material = cap.material;
+      cap.userData.baseOpacity = systemOpacity;
+      root.add(cap);
+      allMeshes.push(cap);
+      (meshesByStructure[sid] = meshesByStructure[sid] || []).push(cap);
+    });
+
+    st.description += " Ear openings are closed with neutral surface patches for mannequin mode.";
   }
 
   // ---- catalog assembly ------------------------------------------------
@@ -276,6 +323,10 @@ window.AnatomyGLB = (function () {
             allMeshes.push(node);
             (meshesByStructure[sid] = meshesByStructure[sid] || []).push(node);
           });
+
+          if (systemId === "skin") {
+            appendSurfaceEarCaps(root, structMap, meshesByStructure, allMeshes, systemName, systemColor, systemOpacity);
+          }
 
           // finalize side info into description / name suffix
           Object.values(structMap).forEach((st) => {
