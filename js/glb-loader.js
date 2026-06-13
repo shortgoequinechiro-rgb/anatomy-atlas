@@ -100,12 +100,11 @@ window.AnatomyGLB = (function () {
     let roughness = 0.62, metalness = 0.0, env = 1.0, opacity = null;
 
     if (systemId === "eyes") {
-      // Build a believable eyeball: white wet sclera, colored iris, a near-black
-      // lens read as the pupil through the iris opening, and a clear glossy cornea.
-      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.05, 0.88); roughness = 0.18; env = 0.4; opacity = 0.1; }
-      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.42, 0.32); roughness = 0.32; env = 1.2; }          // blue-grey iris
-      else if (/lens/.test(tag)) { c.setHSL(0.0, 0.0, 0.02); roughness = 0.18; env = 1.2; }            // dark -> pupil
-      else { c.setHSL(0.06, 0.10, 0.86); roughness = 0.38; env = 0.7; }                               // sclera (white, wet)
+      // Keep eyes anatomical and readable without making the face portrait-like.
+      if (/cornea|anterior chamber/.test(tag)) { c.setHSL(0.55, 0.03, 0.82); roughness = 0.34; env = 0.28; opacity = 0.08; }
+      else if (/iris/.test(tag)) { c.setHSL(0.57, 0.22, 0.38); roughness = 0.48; env = 0.55; }
+      else if (/lens/.test(tag)) { c.setHSL(0.08, 0.05, 0.18); roughness = 0.5; env = 0.35; opacity = 0.72; }
+      else { c.setHSL(0.09, 0.08, 0.78); roughness = 0.58; env = 0.45; }
       return { color: c, roughness, metalness, env, opacity };
     }
 
@@ -139,13 +138,13 @@ window.AnatomyGLB = (function () {
       roughness = 0.48; env = 1.12;
     } else if (systemId === "skin") {
       if (/eye/.test(tag)) {
-        c.setHSL(0.08, 0.06, 0.82); roughness = 0.22; env = 1.2;
+        c.setHSL(0.08, 0.05, 0.72); roughness = 0.72; env = 0.45;
       } else if (/hair|eyelash/.test(tag)) {
-        c.setHSL(0.07, 0.4, clamp(0.16 + j(key, 73, 0.03), 0.1, 0.22)); roughness = 0.9; env = 0.5;
+        c.setHSL(0.07, 0.24, clamp(0.18 + j(key, 73, 0.025), 0.13, 0.24)); roughness = 0.95; env = 0.25;
       } else if (/lip|labial/.test(tag)) {
-        c.setHSL(0.02, 0.3, 0.56); roughness = 0.55; env = 1.05;
+        c.setHSL(0.02, 0.18, 0.54); roughness = 0.76; env = 0.45;
       } else {
-        c.setHSL(0.05, 0.46, clamp(0.6 + j(key, 71, 0.03), 0.53, 0.66)); roughness = 0.7; env = 1.0;
+        c.setHSL(0.05, 0.28, clamp(0.58 + j(key, 71, 0.025), 0.52, 0.64)); roughness = 0.82; env = 0.42;
       }
     } else {
       c.setHex(fallbackHex != null ? fallbackHex : 0xeae2d0); // user-loaded GLB → keep its system color
@@ -194,6 +193,11 @@ window.AnatomyGLB = (function () {
         return;
       }
       const loader = new THREE.GLTFLoader();
+      if (typeof THREE.DRACOLoader === "function") {
+        const draco = new THREE.DRACOLoader();
+        draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/");
+        loader.setDRACOLoader(draco);
+      }
       loader.load(
         url,
         (gltf) => {
@@ -261,8 +265,8 @@ window.AnatomyGLB = (function () {
               if ("roughness" in mat) mat.roughness = tint.roughness;
               if ("metalness" in mat) mat.metalness = tint.metalness;
               if ("envMapIntensity" in mat) mat.envMapIntensity = tint.env;
-              if (mat.emissive) mat.emissive.setHex(systemId === "skin" ? 0x431912 : 0x000000);
-              if (systemId === "skin") { mat.emissiveIntensity = 0.1; mat.side = THREE.DoubleSide; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; }
+              if (mat.emissive) mat.emissive.setHex(0x000000);
+              if (systemId === "skin") { mat.emissiveIntensity = 0; mat.side = THREE.DoubleSide; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; }
               if (baseOpacity < 1) {
                 mat.transparent = true;
                 mat.opacity = baseOpacity;

@@ -33,6 +33,8 @@
   // built-in placeholder catalog by default, and is replaced by a model-
   // derived catalog when a real GLB is loaded.
   let ACTIVE = window.ANATOMY;
+  const STORAGE_VERSION = 2;
+  const FACE_LAYER_IDS = new Set(["eyes", "skin"]);
 
   // Real anatomical definitions extracted from Z-Anatomy (key -> text). Loaded
   // once; selection looks up a definition and falls back to the generic note.
@@ -1082,13 +1084,9 @@
     { file: "models/z-anatomy-cardiovascular.glb", id: "cardiovascular", name: "Cardiovascular system", color: 0xc0392b, opacity: 0.95, on: false },
     { file: "models/z-anatomy-nervous.glb", id: "nervous", name: "Nervous system & senses", color: 0xe6c84d, opacity: 0.9, on: false },
     { file: "models/z-anatomy-visceral.glb", id: "visceral", name: "Visceral organs", color: 0xc98a55, opacity: 0.92, on: false },
+    { file: "models/eyes.glb", id: "eyes", name: "Eyes", color: 0xd8d2c4, opacity: 0.72, on: false },
     { file: "models/skin.glb?v=12", id: "skin", name: "Skin", color: 0xe3ad92, opacity: 1, on: false },
   ];
-
-  // Eyes: a tiny always-on overlay (sclera/cornea/iris/lens) so the figure has
-  // real eyeballs seated in the orbits in every view. Not a toggle pill — it
-  // loads on boot and stays on; its parts are still selectable/searchable.
-  const EYES_CFG = { file: "models/eyes.glb", id: "eyes", name: "Eyes", color: 0xffffff, opacity: 1, on: true };
 
   // Merge the loaded systems into one model. The fit (scale + center) is derived
   // ONCE from the skeleton and reused, so systems stay aligned and adding a
@@ -1186,7 +1184,9 @@
       })
       .catch((e) => {
         console.warn("Failed to load " + cfg.file, e);
-        document.getElementById("glb-status").textContent = "Couldn't load " + cfg.name + ".";
+        const detail = e && (e.message || e.type || e.toString && e.toString());
+        document.getElementById("glb-status").textContent =
+          "Couldn't load " + cfg.name + (detail ? ": " + detail : ".");
       })
       .finally(() => {
         State.loading.delete(cfg.id);
@@ -1216,9 +1216,8 @@
     }
     const saved = loadPersisted();
     showLoading(true, "Loading skeleton…");
-    State.systemEnabled = new Set(["skeletal", "eyes"]);
+    State.systemEnabled = new Set(["skeletal"]);
     ensureSystem(MODEL_SET[0]).then(() => {
-      ensureSystem(EYES_CFG).then(applyVisibility); // eyeballs AFTER the skeleton fixes the fit/scale
       State.ready = true; // real model is in; persistence is now meaningful
       State.selected = null;
       State.labelTarget = null;
@@ -1268,13 +1267,19 @@
     try {
       localStorage.setItem(
         "atlas.state",
-        JSON.stringify({ enabled: [...State.systemEnabled], xray: State.xray, selected: State.selected })
+        JSON.stringify({ version: STORAGE_VERSION, enabled: [...State.systemEnabled], xray: State.xray, selected: State.selected })
       );
     } catch (e) {}
   }
   function loadPersisted() {
     try {
-      return JSON.parse(localStorage.getItem("atlas.state") || "null");
+      const saved = JSON.parse(localStorage.getItem("atlas.state") || "null");
+      if (!saved) return null;
+      if ((saved.version || 0) < STORAGE_VERSION && Array.isArray(saved.enabled)) {
+        saved.enabled = saved.enabled.filter((id) => !FACE_LAYER_IDS.has(id));
+      }
+      saved.version = STORAGE_VERSION;
+      return saved;
     } catch (e) {
       return null;
     }
